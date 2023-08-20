@@ -9,17 +9,6 @@ import (
 	"git.tigh.dev/tigh-latte/monkeyscript/token"
 )
 
-const (
-	_ int = iota
-	LOWEST
-	EQUALS      // ==
-	LESSGREATER // > or <
-	SUM         // +
-	PRODUCT     // *
-	PREFIX      // iX or !X
-	CALL        // myFunction(X)
-)
-
 type (
 	prefixParseFunc func() ast.Expression
 	infixParseFunc  func(ast.Expression) ast.Expression
@@ -49,6 +38,16 @@ func New(l *lexer.Lexer) *Parser {
 		token.MINUS:   p.parsePrefixExpression,
 		token.EXCLAIM: p.parsePrefixExpression,
 	}
+	p.infixParseFns = map[token.TokenType]infixParseFunc{
+		token.EQ:       p.parseInfixExpression,
+		token.NEQ:      p.parseInfixExpression,
+		token.LT:       p.parseInfixExpression,
+		token.GT:       p.parseInfixExpression,
+		token.PLUS:     p.parseInfixExpression,
+		token.MINUS:    p.parseInfixExpression,
+		token.SLASH:    p.parseInfixExpression,
+		token.ASTERISK: p.parseInfixExpression,
+	}
 
 	// Call twice to set both curToken and nextToken
 	p.nextToken()
@@ -60,14 +59,6 @@ func New(l *lexer.Lexer) *Parser {
 func (p *Parser) nextToken() {
 	p.curToken = p.peekToken
 	p.peekToken = p.l.NextToken()
-}
-
-//func (p *Parser) registerPrefix(tt token.TokenType, fn prefixParseFunc) {
-//	p.prefixParseFns[tt] = fn
-//}
-
-func (p *Parser) registerInfix(tt token.TokenType, fn infixParseFunc) {
-	p.infixParseFns[tt] = fn
 }
 
 func (p *Parser) ParseProgram() *ast.Program {
@@ -155,13 +146,26 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 }
 
 func (p *Parser) parseExpression(precedence int) ast.Expression {
-	fn := p.prefixParseFns[p.curToken.Type]
-	if fn == nil {
+	prefixFn := p.prefixParseFns[p.curToken.Type]
+	if prefixFn == nil {
 		p.errors = append(p.errors, fmt.Errorf("no prefix parse function for %s found", p.curToken.Type))
 		return nil
 	}
 
-	return fn()
+	leftExp := prefixFn()
+
+	for p.peekToken.Type != token.SEMICOLON && precedence < p.peekPrecedence() {
+		infixFn := p.infixParseFns[p.peekToken.Type]
+		if infixFn == nil {
+			return leftExp
+		}
+
+		p.nextToken()
+
+		leftExp = infixFn(leftExp)
+	}
+
+	return leftExp
 }
 
 func (p *Parser) Errors() error {

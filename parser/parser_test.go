@@ -202,6 +202,154 @@ func TestParsingPrefixExpressions(t *testing.T) {
 	}
 }
 
+func TestParsingInfixExpressions(t *testing.T) {
+	tests := []struct {
+		input      string
+		leftValue  int64
+		operator   string
+		rightValue int64
+	}{{
+		input:      "5 + 5",
+		leftValue:  5,
+		operator:   "+",
+		rightValue: 5,
+	}, {
+		input: "5 + 5",
+
+		leftValue:  5,
+		operator:   "+",
+		rightValue: 5,
+	}, {
+		input: "5 * 5",
+
+		leftValue:  5,
+		operator:   "*",
+		rightValue: 5,
+	}, {
+		input: "5 / 5",
+
+		leftValue:  5,
+		operator:   "/",
+		rightValue: 5,
+	}, {
+		input: "5 / 5",
+
+		leftValue:  5,
+		operator:   "/",
+		rightValue: 5,
+	}, {
+		input: "5 > 5",
+
+		leftValue:  5,
+		operator:   ">",
+		rightValue: 5,
+	}, {
+		input: "5 < 5",
+
+		leftValue:  5,
+		operator:   "<",
+		rightValue: 5,
+	}, {
+		input: "5 == 5",
+
+		leftValue:  5,
+		operator:   "==",
+		rightValue: 5,
+	}, {
+		input: "5 != 5",
+
+		leftValue:  5,
+		operator:   "!=",
+		rightValue: 5,
+	}}
+
+	for _, test := range tests {
+		p := parser.New(lexer.New(test.input))
+		prog := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(prog.Statements) != 1 {
+			t.Fatalf("prog.Statements does not contain %d statemetns. got=%d", 1, len(prog.Statements))
+		}
+
+		stmt, ok := prog.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("prog.Statements[0] is not ast.ExpressionStatement. got=%T", stmt.Expression)
+		}
+
+		exp, ok := stmt.Expression.(*ast.InfixExpression)
+		if !ok {
+			t.Fatalf("exp is not ast.InfixExpression. got=%T", stmt.Expression)
+		}
+
+		if !checkIntegerLiteral(t, exp.Left, test.leftValue) {
+			return
+		}
+
+		if exp.Operator != test.operator {
+			t.Fatalf("exp.Operator is not '%s'. got=%s", test.operator, exp.Operator)
+		}
+
+		if !checkIntegerLiteral(t, exp.Right, test.rightValue) {
+			return
+		}
+	}
+}
+
+func TestOperatorPrecendenceParsing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{{
+		input:    "-a * b",
+		expected: "((-a) * b)",
+	}, {
+		input:    "!-a",
+		expected: "(!(-a))",
+	}, {
+		input:    "a + b + c",
+		expected: "((a + b) + c)",
+	}, {
+		input:    "a + b - c",
+		expected: "((a + b) - c)",
+	}, {
+		input:    "a * b * c",
+		expected: "((a * b) * c)",
+	}, {
+		input:    "a * b / c",
+		expected: "((a * b) / c)",
+	}, {
+		input:    "a + b / c",
+		expected: "(a + (b / c))",
+	}, {
+		input:    "a + b * c + d / e - f",
+		expected: "(((a + (b * c)) + (d / e)) - f)",
+	}, {
+		input:    "3 + 4; -5 * 5",
+		expected: "(3 + 4)((-5) * 5)",
+	}, {
+		input:    "5 > 4 == 3 < 4",
+		expected: "((5 > 4) == (3 < 4))",
+	}, {
+		input:    "5 < 4 != 3 > 4",
+		expected: "((5 < 4) != (3 > 4))",
+	}, {
+		input:    "3 + 4 * 5 == 3 * 1 + 4 * 5",
+		expected: "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+	}}
+
+	for _, test := range tests {
+		p := parser.New(lexer.New(test.input))
+		prog := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		actual := prog.String()
+		if actual != test.expected {
+			t.Errorf("expected=%q, got=%q", test.expected, actual)
+		}
+	}
+}
+
 func checkParserErrors(t *testing.T, p *parser.Parser) {
 	errs := p.Errors()
 	if p.Errors() == nil {
