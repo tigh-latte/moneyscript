@@ -1,8 +1,14 @@
 package ast
 
-import "git.tigh.dev/tigh-latte/monkeyscript/token"
+import (
+	"bytes"
+	"fmt"
+
+	"git.tigh.dev/tigh-latte/monkeyscript/token"
+)
 
 type Node interface {
+	fmt.Stringer
 	TokenLiteral() string
 }
 
@@ -20,6 +26,16 @@ type Program struct {
 	Statements []Statement
 }
 
+func (p *Program) String() string {
+	bb := new(bytes.Buffer)
+
+	for _, s := range p.Statements {
+		bb.WriteString(s.String())
+	}
+
+	return bb.String()
+}
+
 func (p *Program) TokenLiteral() string {
 	if len(p.Statements) > 0 {
 		return p.Statements[0].TokenLiteral()
@@ -34,9 +50,23 @@ type LetStatement struct {
 	Value Expression
 }
 
-func (ls *LetStatement) statementNode() {}
-func (ls *LetStatement) TokenLiteral() string {
-	return ls.Token.Literal
+func (l *LetStatement) String() string {
+	bb := new(bytes.Buffer)
+
+	bb.WriteString(l.TokenLiteral() + " ")
+	bb.WriteString(l.Name.String())
+	bb.WriteString(" = ")
+	if l.Value != nil {
+		bb.WriteString(l.Value.String())
+	}
+	bb.WriteString(";")
+
+	return bb.String()
+}
+
+func (l *LetStatement) statementNode() {}
+func (l *LetStatement) TokenLiteral() string {
+	return l.Token.Literal
 }
 
 type Identifier struct {
@@ -49,12 +79,44 @@ func (i *Identifier) TokenLiteral() string {
 	return i.Token.Literal
 }
 
+func (i *Identifier) String() string {
+	return i.Value
+}
+
 type ReturnStatement struct {
 	Token       token.Token // `token.RETURN`
 	ReturnValue Expression
 }
 
-func (rs *ReturnStatement) statementNode() {}
-func (rs *ReturnStatement) TokenLiteral() string {
-	return rs.Token.Literal
+func (r *ReturnStatement) String() string {
+	bb := new(bytes.Buffer)
+
+	bb.WriteString(r.TokenLiteral())
+	if r.ReturnValue != nil {
+		bb.WriteString(r.ReturnValue.String())
+	}
+
+	return bb.String()
+}
+
+func (r *ReturnStatement) statementNode() {}
+func (r *ReturnStatement) TokenLiteral() string {
+	return r.Token.Literal
+}
+
+type ExpressionStatement struct {
+	Token      token.Token // first token of the expression
+	Expression Expression
+}
+
+func (e *ExpressionStatement) statementNode() {}
+func (e *ExpressionStatement) TokenLiteral() string {
+	return e.Token.Literal
+}
+
+func (e ExpressionStatement) String() string {
+	if e.Expression != nil {
+		return e.Expression.String()
+	}
+	return ""
 }
