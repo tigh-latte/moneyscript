@@ -134,3 +134,25 @@ func (e ExpressionStatement) String() string {
 	}
 	return ""
 }
+
+type PrefixExpression struct {
+	Token    token.Token // The prefix token [`token.MINUS`, `token.EXCLAIM`]
+	Operator string
+	Right    Expression
+}
+
+func (p *PrefixExpression) expressionNode() {}
+func (p *PrefixExpression) TokenLiteral() string {
+	return p.Token.Literal
+}
+
+func (p *PrefixExpression) String() string {
+	bb := new(bytes.Buffer)
+
+	bb.WriteString("(")
+	bb.WriteString(p.Operator)
+	bb.WriteString(p.Right.String())
+	bb.WriteString(")")
+
+	return bb.String()
+}

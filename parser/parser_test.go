@@ -1,6 +1,7 @@
 package parser_test
 
 import (
+	"fmt"
 	"testing"
 
 	"git.tigh.dev/tigh-latte/monkeyscript/ast"
@@ -95,26 +96,6 @@ func TestReturnStatement(t *testing.T) {
 	}
 }
 
-func checkParserErrors(t *testing.T, p *parser.Parser) {
-	errs := p.Errors()
-	if p.Errors() == nil {
-		return
-	}
-
-	v, ok := errs.(interface {
-		Unwrap() []error
-	})
-	if !ok {
-		t.Errorf("unexpected error type")
-	}
-	t.Errorf("parser has %d errors", len(v.Unwrap()))
-
-	for _, err := range v.Unwrap() {
-		t.Errorf("parser error: %s", err)
-	}
-	t.FailNow()
-}
-
 func TestIdentifierExpression(t *testing.T) {
 	input := "foobar;"
 
@@ -172,4 +153,91 @@ func TestIntegerExpression(t *testing.T) {
 	if literal.TokenLiteral() != "5" {
 		t.Errorf("literal.TokenLiteral not %d. got=%s", 5, literal.TokenLiteral())
 	}
+}
+
+func TestParsingPrefixExpressions(t *testing.T) {
+	tests := []struct {
+		input        string
+		operator     string
+		integerValue int64
+	}{
+		{
+			input:        "!5",
+			operator:     "!",
+			integerValue: 5,
+		},
+		{
+			input:        "-15",
+			operator:     "-",
+			integerValue: 15,
+		},
+	}
+
+	for _, test := range tests {
+		p := parser.New(lexer.New(test.input))
+		prog := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(prog.Statements) != 1 {
+			t.Fatalf("prog.Statements does not contain %d statements. got=%d", 1, len(prog.Statements))
+		}
+
+		stmt, ok := prog.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("prog.Statement[0] is not ast.ExpressionStatement. got=%T", prog.Statements[0])
+		}
+
+		exp, ok := stmt.Expression.(*ast.PrefixExpression)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.PrefixExpression. got=%T", stmt.Expression)
+		}
+
+		if exp.Operator != test.operator {
+			t.Fatalf("exp.Operator1 is not '%s'. got=%s", test.operator, exp.Operator)
+		}
+
+		if !checkIntegerLiteral(t, exp.Right, test.integerValue) {
+			return
+		}
+	}
+}
+
+func checkParserErrors(t *testing.T, p *parser.Parser) {
+	errs := p.Errors()
+	if p.Errors() == nil {
+		return
+	}
+
+	v, ok := errs.(interface {
+		Unwrap() []error
+	})
+	if !ok {
+		t.Errorf("unexpected error type")
+	}
+	t.Errorf("parser has %d errors", len(v.Unwrap()))
+
+	for _, err := range v.Unwrap() {
+		t.Errorf("parser error: %s", err)
+	}
+	t.FailNow()
+}
+
+func checkIntegerLiteral(t *testing.T, il ast.Expression, v int64) bool {
+	i, ok := il.(*ast.IntegerLiteral)
+	if !ok {
+		t.Errorf("il not *ast.IntegerLiteral. got=%T", il)
+		return false
+	}
+
+	if i.Value != v {
+		t.Errorf("i.Value not %d. got=%d", i.Value, v)
+		return false
+	}
+
+	if i.TokenLiteral() != fmt.Sprintf("%d", v) {
+		t.Errorf("i.TokenLiteral not %d. got=%s", v, i.TokenLiteral())
+		return false
+	}
+
+	return true
 }
