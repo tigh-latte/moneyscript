@@ -180,3 +180,65 @@ func (i *InfixExpression) String() string {
 
 	return bb.String()
 }
+
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (b *Boolean) expressionNode() {}
+func (b *Boolean) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+func (b *Boolean) String() string {
+	return b.Token.Literal
+}
+
+type IfExpression struct {
+	Token       token.Token
+	Condition   Expression
+	Consequence *BlockStatement
+	Alternative *BlockStatement
+}
+
+func (i *IfExpression) expressionNode() {}
+func (i *IfExpression) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+func (i *IfExpression) String() string {
+	bb := new(bytes.Buffer)
+
+	bb.WriteString("if")
+	bb.WriteString(i.Condition.String())
+	bb.WriteString(" ")
+	bb.WriteString(i.Consequence.String())
+
+	if i.Alternative != nil {
+		bb.WriteString(" else ")
+		bb.WriteString(i.Alternative.String())
+	}
+
+	return bb.String()
+}
+
+type BlockStatement struct {
+	Token      token.Token
+	Statements []Statement
+}
+
+func (b *BlockStatement) statementNode() {}
+func (b *BlockStatement) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+func (b *BlockStatement) String() string {
+	bb := new(bytes.Buffer)
+
+	for _, s := range b.Statements {
+		bb.WriteString(s.String())
+	}
+
+	return bb.String()
+}
