@@ -3,6 +3,7 @@ package ast
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"git.tigh.dev/tigh-latte/monkeyscript/token"
 )
@@ -239,6 +240,63 @@ func (b *BlockStatement) String() string {
 	for _, s := range b.Statements {
 		bb.WriteString(s.String())
 	}
+
+	return bb.String()
+}
+
+type FunctionLiteral struct {
+	Token      token.Token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (f *FunctionLiteral) expressionNode() {}
+func (f *FunctionLiteral) TokenLiteral() string {
+	return f.Token.Literal
+}
+
+func (f *FunctionLiteral) String() string {
+	bb := new(bytes.Buffer)
+
+	bb.WriteString(f.TokenLiteral())
+	bb.WriteString("(")
+
+	params := make([]string, len(f.Parameters))
+	for i, param := range f.Parameters {
+		params[i] = param.String()
+	}
+
+	bb.WriteString(strings.Join(params, ", "))
+	bb.WriteString(") {")
+	bb.WriteString(f.Body.String())
+	bb.WriteString("}")
+
+	return bb.String()
+}
+
+type CallExpression struct {
+	Token     token.Token // Then '(' token
+	Function  Expression  // Identifier or FunctionLiteral
+	Arguments []Expression
+}
+
+func (c *CallExpression) expressionNode() {}
+func (c *CallExpression) TokenLiteral() string {
+	return c.Token.Literal
+}
+
+func (c *CallExpression) String() string {
+	bb := new(bytes.Buffer)
+
+	args := make([]string, len(c.Arguments))
+	for i, a := range c.Arguments {
+		args[i] = a.String()
+	}
+
+	bb.WriteString(c.Function.String())
+	bb.WriteRune('(')
+	bb.WriteString(strings.Join(args, ", "))
+	bb.WriteRune(')')
 
 	return bb.String()
 }

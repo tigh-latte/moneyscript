@@ -33,14 +33,15 @@ func New(l *lexer.Lexer) *Parser {
 	}
 
 	p.prefixParseFns = map[token.TokenType]prefixParseFunc{
-		token.IDENT:   p.parseIdentifier,
-		token.INT:     p.parseIntegerLiteral,
-		token.MINUS:   p.parsePrefixExpression,
-		token.EXCLAIM: p.parsePrefixExpression,
-		token.TRUE:    p.parseBoolean,
-		token.FALSE:   p.parseBoolean,
-		token.LPAREN:  p.parseGroupedExpression,
-		token.IF:      p.parseIfExpression,
+		token.IDENT:    p.parseIdentifier,
+		token.INT:      p.parseIntegerLiteral,
+		token.MINUS:    p.parsePrefixExpression,
+		token.EXCLAIM:  p.parsePrefixExpression,
+		token.TRUE:     p.parseBoolean,
+		token.FALSE:    p.parseBoolean,
+		token.LPAREN:   p.parseGroupedExpression,
+		token.IF:       p.parseIfExpression,
+		token.FUNCTION: p.parseFunctionLiteral,
 	}
 	p.infixParseFns = map[token.TokenType]infixParseFunc{
 		token.EQ:       p.parseInfixExpression,
@@ -51,6 +52,7 @@ func New(l *lexer.Lexer) *Parser {
 		token.MINUS:    p.parseInfixExpression,
 		token.SLASH:    p.parseInfixExpression,
 		token.ASTERISK: p.parseInfixExpression,
+		token.LPAREN:   p.parseCallExpression,
 	}
 
 	// Call twice to set both curToken and nextToken
@@ -95,7 +97,7 @@ func (p *Parser) parseStatement() ast.Statement {
 	case token.LET:
 		return p.parseLetStatement()
 	case token.RETURN:
-		return p.parseReturnStatemeant()
+		return p.parseReturnStatement()
 	default:
 		return p.parseExpressionStatement()
 	}
@@ -114,23 +116,25 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	if ok := p.expectPeek(token.ASSIGN); !ok {
 		return nil
 	}
+	p.nextToken()
+	p.nextToken()
 
-	p.nextToken() // advance to assigment
+	stmt.Value = p.parseExpression(LOWEST)
 
-	// TODO: skipping expressions until we get a semicolon
-	for p.curToken.Type != token.SEMICOLON {
+	if p.peekToken.Type == token.SEMICOLON {
 		p.nextToken()
 	}
 
 	return stmt
 }
 
-func (p *Parser) parseReturnStatemeant() *ast.ReturnStatement {
+func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	stmt := &ast.ReturnStatement{Token: p.curToken}
 	p.nextToken()
 
-	// TODO: skip expressions until we hit semi colon
-	for p.curToken.Type != token.SEMICOLON {
+	stmt.ReturnValue = p.parseExpression(LOWEST)
+
+	if p.peekToken.Type == token.SEMICOLON {
 		p.nextToken()
 	}
 

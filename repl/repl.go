@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"git.tigh.dev/tigh-latte/monkeyscript/lexer"
-	"git.tigh.dev/tigh-latte/monkeyscript/token"
+	"git.tigh.dev/tigh-latte/monkeyscript/parser"
 )
 
 const PROMPT = ">> "
@@ -17,15 +17,21 @@ func Start(in io.Reader, out io.Writer) {
 	for {
 		fmt.Fprint(out, PROMPT)
 
-		if !scanner.Scan() {
+		if next := scanner.Scan(); !next {
 			return
 		}
 
 		line := scanner.Text()
 		l := lexer.New(line)
+		p := parser.New(l)
 
-		for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-			fmt.Fprintf(out, "%#v\n", tok)
+		program := p.ParseProgram()
+		if p.Errors() != nil {
+			fmt.Println(p.Errors())
+			continue
 		}
+
+		io.WriteString(out, program.String())
+		io.WriteString(out, "\n")
 	}
 }

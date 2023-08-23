@@ -120,3 +120,86 @@ func (p *Parser) parseBlockStatement() *ast.BlockStatement {
 
 	return block
 }
+
+func (p *Parser) parseFunctionLiteral() ast.Expression {
+	lit := &ast.FunctionLiteral{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	p.nextToken()
+
+	lit.Parameters = p.parseFunctionParameters()
+
+	if !p.expectPeek(token.LSQUIG) {
+		return nil
+	}
+	p.nextToken()
+
+	lit.Body = p.parseBlockStatement()
+
+	return lit
+}
+
+func (p *Parser) parseFunctionParameters() []*ast.Identifier {
+	idents := []*ast.Identifier{}
+
+	if p.peekToken.Type == token.RPAREN {
+		p.nextToken()
+		return idents
+	}
+
+	p.nextToken()
+
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	idents = append(idents, ident)
+
+	for p.peekToken.Type == token.COMMA {
+		// Move past comma
+		p.nextToken()
+		p.nextToken()
+
+		ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+		idents = append(idents, ident)
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+	p.nextToken()
+
+	return idents
+}
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	expression := &ast.CallExpression{Token: p.curToken, Function: function}
+	expression.Arguments = p.parseCallArguments()
+	return expression
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+
+	if p.peekToken.Type == token.RPAREN {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekToken.Type == token.COMMA {
+		// skip past comma
+		p.nextToken()
+		p.nextToken()
+
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+	p.nextToken()
+
+	return args
+}
