@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"git.tigh.dev/tigh-latte/monkeyscript/evaluator"
 	"git.tigh.dev/tigh-latte/monkeyscript/lexer"
 	"git.tigh.dev/tigh-latte/monkeyscript/parser"
 )
@@ -31,7 +32,11 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		io.WriteString(out, program.String())
+		evaluated := evaluator.Eval(program)
+		if evaluated == nil {
+			return
+		}
+		io.WriteString(out, evaluated.Inspect())
 		io.WriteString(out, "\n")
 	}
 }
