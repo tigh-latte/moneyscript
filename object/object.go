@@ -3,9 +3,10 @@ package object
 type ObjectType string
 
 const (
-	IntegerType = "INTEGER"
-	BooleanType = "BOOLEAN"
-	NullType    = "NULL"
+	IntegerType     = "INTEGER"
+	BooleanType     = "BOOLEAN"
+	NullType        = "NULL"
+	ReturnValueType = "RETURN_VALUE"
 )
 
 type Object interface {

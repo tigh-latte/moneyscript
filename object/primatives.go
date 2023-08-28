@@ -35,3 +35,15 @@ func (null *Null) Type() ObjectType {
 func (null *Null) Inspect() string {
 	return "null"
 }
+
+type ReturnValue struct {
+	Value Object
+}
+
+func (r *ReturnValue) Type() ObjectType {
+	return ReturnValueType
+}
+
+func (r *ReturnValue) Inspect() string {
+	return r.Value.Inspect()
+}
