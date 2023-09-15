@@ -47,3 +47,15 @@ func (r *ReturnValue) Type() ObjectType {
 func (r *ReturnValue) Inspect() string {
 	return r.Value.Inspect()
 }
+
+type Error struct {
+	Message string
+}
+
+func (e *Error) Type() ObjectType {
+	return ErrorType
+}
+
+func (e *Error) Inspect() string {
+	return "ERROR: " + e.Message
+}

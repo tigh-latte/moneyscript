@@ -7,6 +7,7 @@ const (
 	BooleanType     = "BOOLEAN"
 	NullType        = "NULL"
 	ReturnValueType = "RETURN_VALUE"
+	ErrorType       = "ERROR"
 )
 
 type Object interface {
