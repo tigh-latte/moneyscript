@@ -7,6 +7,7 @@ import (
 
 	"git.tigh.dev/tigh-latte/monkeyscript/evaluator"
 	"git.tigh.dev/tigh-latte/monkeyscript/lexer"
+	"git.tigh.dev/tigh-latte/monkeyscript/object"
 	"git.tigh.dev/tigh-latte/monkeyscript/parser"
 )
 
@@ -14,6 +15,7 @@ const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
+	env := object.NewEnvironment()
 
 	for {
 		fmt.Fprint(out, PROMPT)
@@ -32,7 +34,7 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program)
+		evaluated := evaluator.Eval(program, env)
 		if evaluated == nil {
 			return
 		}

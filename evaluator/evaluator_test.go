@@ -263,6 +263,9 @@ func TestErrorHandling(t *testing.T) {
 		}
 		`,
 		expected: "unknown operator: BOOLEAN + BOOLEAN",
+	}, {
+		input:    "foobar",
+		expected: "identifier not found: foobar",
 	}}
 
 	for _, test := range tests {
@@ -280,6 +283,29 @@ func TestErrorHandling(t *testing.T) {
 	}
 }
 
+func TestLetStatements(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{{
+		input:    "let a = 5; a;",
+		expected: 5,
+	}, {
+		input:    "let a = 5 * 5; a;",
+		expected: 25,
+	}, {
+		input:    "let a = 5; let b = a; b;",
+		expected: 5,
+	}, {
+		input:    "let a = 5; let b = a; let c = a + b + 5; c;",
+		expected: 15,
+	}}
+
+	for _, test := range tests {
+		testIntegerObject(t, testEval(test.input), test.expected)
+	}
+}
+
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != evaluator.Null {
 		t.Errorf("object is not Null. got=%T (%#v)", obj, obj)
@@ -290,7 +316,7 @@ func testNullObject(t *testing.T, obj object.Object) bool {
 }
 
 func testEval(input string) object.Object {
-	return evaluator.Eval(parser.New(lexer.New(input)).ParseProgram())
+	return evaluator.Eval(parser.New(lexer.New(input)).ParseProgram(), object.NewEnvironment())
 }
 
 func testIntegerObject(t *testing.T, o object.Object, expected int64) bool {
