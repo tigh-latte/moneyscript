@@ -8,6 +8,7 @@ const (
 	NullType        = "NULL"
 	ReturnValueType = "RETURN_VALUE"
 	ErrorType       = "ERROR"
+	FunctionType    = "FUNCTION"
 )
 
 type Object interface {

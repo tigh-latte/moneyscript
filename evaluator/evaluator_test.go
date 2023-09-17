@@ -306,6 +306,70 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionObject(t *testing.T) {
+	input := "fn(x) { x + 2; };"
+
+	evaluated := testEval(input)
+	fn, ok := evaluated.(*object.Function)
+	if !ok {
+		t.Fatalf("object is not Function. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if len(fn.Parameters) != 1 {
+		t.Fatalf("function has wrong parameters. Parameters=%+v", fn.Parameters)
+	}
+
+	if fn.Parameters[0].String() != "x" {
+		t.Fatalf("parameter is not 'x'. got=%q", fn.Parameters[0])
+	}
+
+	if fn.Body.String() != "(x + 2)" {
+		t.Fatalf("body is not \"(x + 2)\". got=%q", fn.Body.String())
+	}
+}
+
+func TestFunctionApplciation(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected int64
+	}{{
+		input:    "let identity = fn(x) { x; }; identity(5);",
+		expected: 5,
+	}, {
+		input:    "let identity = fn(x) { return x; }; identity(5);",
+		expected: 5,
+	}, {
+		input:    "let double = fn(x) { return x * 2; }; double(5);",
+		expected: 10,
+	}, {
+		input:    "let add = fn(x, y) { return x + y; }; add(5, 2);",
+		expected: 7,
+	}, {
+		input:    "let add = fn(x, y) { return x + y; }; add(5 + 5, add(5, 5));",
+		expected: 20,
+	}, {
+		input:    "fn(x) { x ;}(5);",
+		expected: 5,
+	}}
+
+	for _, test := range tests {
+		testIntegerObject(t, testEval(test.input), test.expected)
+	}
+}
+
+func TestClosures(t *testing.T) {
+	input := `
+	let newAdder = fn(x) {
+		fn(y) { x + y };
+	};
+
+	let addTwo = newAdder(2);
+	addTwo(2);
+	`
+
+	testIntegerObject(t, testEval(input), 4)
+}
+
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != evaluator.Null {
 		t.Errorf("object is not Null. got=%T (%#v)", obj, obj)
@@ -316,7 +380,7 @@ func testNullObject(t *testing.T, obj object.Object) bool {
 }
 
 func testEval(input string) object.Object {
-	return evaluator.Eval(parser.New(lexer.New(input)).ParseProgram(), object.NewEnvironment())
+	return evaluator.Eval(parser.New(lexer.New(input)).ParseProgram(), object.NewEnvironment(nil))
 }
 
 func testIntegerObject(t *testing.T, o object.Object, expected int64) bool {

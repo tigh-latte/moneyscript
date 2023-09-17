@@ -1,17 +1,22 @@
 package object
 
 type Environment struct {
+	*Environment
 	s map[string]Object
 }
 
-func NewEnvironment() *Environment {
+func NewEnvironment(env *Environment) *Environment {
 	return &Environment{
-		s: make(map[string]Object),
+		Environment: env,
+		s:           make(map[string]Object),
 	}
 }
 
 func (e *Environment) Get(name string) (Object, bool) {
 	o, ok := e.s[name]
+	if !ok && e.Environment != nil {
+		o, ok = e.Environment.Get(name)
+	}
 	return o, ok
 }
 

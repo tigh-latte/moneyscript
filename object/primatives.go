@@ -1,6 +1,12 @@
 package object
 
-import "strconv"
+import (
+	"bytes"
+	"strconv"
+	"strings"
+
+	"git.tigh.dev/tigh-latte/monkeyscript/ast"
+)
 
 type Integer struct {
 	Value int64
@@ -58,4 +64,31 @@ func (e *Error) Type() ObjectType {
 
 func (e *Error) Inspect() string {
 	return "ERROR: " + e.Message
+}
+
+type Function struct {
+	Parameters []*ast.Identifier
+	Body   *ast.BlockStatement
+	Env    *Environment
+}
+
+func (f *Function) Type() ObjectType {
+	return FunctionType
+}
+
+func (f *Function) Inspect() string {
+	var bb bytes.Buffer
+
+	params := make([]string, len(f.Parameters))
+	for i, param := range f.Parameters {
+		params[i] = param.String()
+	}
+
+	bb.WriteString("fn (")
+	bb.WriteString(strings.Join(params, ", "))
+	bb.WriteString(") {\n")
+	bb.WriteString(f.Body.String())
+	bb.WriteString("\n}")
+
+	return bb.String()
 }
