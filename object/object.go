@@ -9,6 +9,8 @@ const (
 	ReturnValueType = "RETURN_VALUE"
 	ErrorType       = "ERROR"
 	FunctionType    = "FUNCTION"
+	StringType      = "STRING"
+	BuiltinType     = "BUILTIN"
 )
 
 type Object interface {

@@ -21,6 +21,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return Eval(node.Expression, env)
 	case *ast.IntegerLiteral:
 		return &object.Integer{Value: node.Value}
+	case *ast.StringLiteral:
+		return &object.String{Value: node.Value}
 	case *ast.Boolean:
 		return evalBoolean(node.Value)
 	case *ast.PrefixExpression:
@@ -57,11 +59,14 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 		return env.Set(node.Name.Value, val)
 	case *ast.Identifier:
-		val, ok := env.Get(node.Value)
-		if !ok {
-			return newError("identifier not found: " + node.Value)
+		if val, ok := env.Get(node.Value); ok {
+			return val
 		}
-		return val
+		if builtin, ok := builtins[node.Value]; ok {
+			return builtin
+		}
+
+		return newError("identifier not found: " + node.Value)
 	case *ast.FunctionLiteral:
 		params := node.Parameters
 		body := node.Body
@@ -98,15 +103,17 @@ func evalExpressions(exps []ast.Expression, env *object.Environment) []object.Ob
 }
 
 func applyFunction(function object.Object, args []object.Object) object.Object {
-	fn, ok := function.(*object.Function)
-	if !ok {
-		return newError("not a function: " + string(fn.Type()))
+	switch fn := function.(type) {
+	case *object.Function:
+		env := extendFunctionEnv(fn, args)
+		evaluated := Eval(fn.Body, env)
+
+		return unwrapReturnValue(evaluated)
+	case *object.Builtin:
+		return fn.Fn(args...)
 	}
 
-	env := extendFunctionEnv(fn, args)
-	evaluated := Eval(fn.Body, env)
-
-	return unwrapReturnValue(evaluated)
+	return newError("not a function: " + string(function.Type()))
 }
 
 func extendFunctionEnv(fn *object.Function, args []object.Object) *object.Environment {
@@ -203,6 +210,8 @@ func evalInfixExpression(operator string, left, right object.Object) object.Obje
 	switch {
 	case left.Type() == object.IntegerType && right.Type() == object.IntegerType:
 		return evalIntegerInfixExpression(operator, left, right)
+	case left.Type() == object.StringType && right.Type() == object.StringType:
+		return evalStringInfixExpression(operator, left, right)
 	case operator == "==":
 		return evalBoolean(left == right)
 	case operator == "!=":
@@ -237,6 +246,14 @@ func evalIntegerInfixExpression(operator string, lObj, rObj object.Object) objec
 	default:
 		return newErrorf("unknown operator: %s %s %s", lObj.Type(), operator, rObj.Type())
 	}
+}
+
+func evalStringInfixExpression(operator string, l, r object.Object) object.Object {
+	if operator != "+" {
+		return newErrorf("unknown operator: %s %s %s", l.Type(), operator, r.Type())
+	}
+	left, right := l.(*object.String).Value, r.(*object.String).Value
+	return &object.String{Value: left + right}
 }
 
 func evalIfExpression(exp *ast.IfExpression, env *object.Environment) object.Object {

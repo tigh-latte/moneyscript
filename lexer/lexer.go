@@ -1,6 +1,8 @@
 package lexer
 
-import "git.tigh.dev/tigh-latte/monkeyscript/token"
+import (
+	"git.tigh.dev/tigh-latte/monkeyscript/token"
+)
 
 type Lexer struct {
 	// input to be lexed.
@@ -76,6 +78,9 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	default:
 		if isLetter(l.ch) {
 			tok.Literal = l.readSymbol(isLetter)
@@ -116,6 +121,18 @@ func (l *Lexer) readSymbol(truth func(byte) bool) string {
 	position := l.position
 	for truth(l.ch) {
 		l.readChar()
+	}
+
+	return l.input[position:l.position]
+}
+
+func (l *Lexer) readString() string {
+	position := l.position + 1
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
 	}
 
 	return l.input[position:l.position]

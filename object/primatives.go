@@ -68,8 +68,8 @@ func (e *Error) Inspect() string {
 
 type Function struct {
 	Parameters []*ast.Identifier
-	Body   *ast.BlockStatement
-	Env    *Environment
+	Body       *ast.BlockStatement
+	Env        *Environment
 }
 
 func (f *Function) Type() ObjectType {
@@ -92,3 +92,19 @@ func (f *Function) Inspect() string {
 
 	return bb.String()
 }
+
+type String struct {
+	Value string
+}
+
+func (s *String) Type() ObjectType { return StringType }
+func (s *String) Inspect() string  { return s.Value }
+
+type BuiltinFunction func(args ...Object) Object
+
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+func (b *Builtin) Type() ObjectType { return BuiltinType }
+func (b *Builtin) Inspect() string  { return "builtin function" }
