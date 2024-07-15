@@ -458,6 +458,53 @@ func TestArrayLiterals(t *testing.T) {
 	testIntegerObject(t, result.Elements[2], 6)
 }
 
+func TestArrayIndexExpressions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected any
+	}{{
+		input:    "[1, 2, 3][0]",
+		expected: 1,
+	}, {
+		input:    "[1, 2, 3][1]",
+		expected: 2,
+	}, {
+		input:    "[1, 2, 3][2]",
+		expected: 3,
+	}, {
+		input:    "let i = 0; [1][i]",
+		expected: 1,
+	}, {
+		input:    "[1, 2, 3][1 + 1]",
+		expected: 3,
+	}, {
+		input:    "let myArray = [1, 2, 3]; myArray[2]",
+		expected: 3,
+	}, {
+		input:    "let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+		expected: 6,
+	}, {
+		input:    "let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",
+		expected: 2,
+	}, {
+		input:    "[1, 2, 3][3]",
+		expected: nil,
+	}, {
+		input:    "[1, 2, 3][-1]",
+		expected: nil,
+	}}
+
+	for _, test := range tests {
+		evaluated := testEval(test.input)
+		integer, ok := test.expected.(int)
+		if ok {
+			testIntegerObject(t, evaluated, int64(integer))
+		} else {
+			testNullObject(t, evaluated)
+		}
+	}
+}
+
 func testNullObject(t *testing.T, obj object.Object) bool {
 	if obj != evaluator.Null {
 		t.Errorf("object is not Null. got=%T (%#v)", obj, obj)
