@@ -30,6 +30,7 @@ func TestNextToken(t *testing.T) {
 	10 != 9;
 	"foobar"
 	"foo bar"
+	[1, 2];
 	`
 
 	tests := []struct {
@@ -125,8 +126,19 @@ func TestNextToken(t *testing.T) {
 		{token.INT, "9"},
 		{token.SEMICOLON, ";"},
 
+		// "foobar"
 		{token.STRING, "foobar"},
+		// "foo bar"
 		{token.STRING, "foo bar"},
+
+		// [1, 2];
+		{token.LSQUAR, "["},
+		{token.INT, "1"},
+		{token.COMMA, ","},
+		{token.INT, "2"},
+		{token.RSQUAR, "]"},
+		{token.SEMICOLON, ";"},
+		{token.EOF, ""},
 	}
 
 	l := lexer.New(input)

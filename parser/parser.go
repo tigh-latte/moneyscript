@@ -43,6 +43,7 @@ func New(l *lexer.Lexer) *Parser {
 		token.IF:       p.parseIfExpression,
 		token.FUNCTION: p.parseFunctionLiteral,
 		token.STRING:   p.parseStringLiteral,
+		token.LSQUAR:   p.parseArrayLiteral,
 	}
 	p.infixParseFns = map[token.TokenType]infixParseFunc{
 		token.EQ:       p.parseInfixExpression,
@@ -54,6 +55,7 @@ func New(l *lexer.Lexer) *Parser {
 		token.SLASH:    p.parseInfixExpression,
 		token.ASTERISK: p.parseInfixExpression,
 		token.LPAREN:   p.parseCallExpression,
+		token.LSQUAR:   p.parseIndexExpression,
 	}
 
 	// Call twice to set both curToken and nextToken

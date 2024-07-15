@@ -35,6 +35,8 @@ const (
 	RPAREN = ")"
 	LSQUIG = "{"
 	RSQUIG = "}"
+	LSQUAR = "["
+	RSQUAR = "]"
 
 	FUNCTION = "FUNCTION"
 	LET      = "LET"

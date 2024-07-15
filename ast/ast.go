@@ -309,3 +309,45 @@ type StringLiteral struct {
 func (sl *StringLiteral) expressionNode()      {}
 func (sl *StringLiteral) TokenLiteral() string { return sl.Token.Literal }
 func (sl *StringLiteral) String() string       { return sl.Token.Literal }
+
+type ArrayLiteral struct {
+	Token    token.Token
+	Elements []Expression
+}
+
+func (al *ArrayLiteral) expressionNode()      {}
+func (al *ArrayLiteral) TokenLiteral() string { return al.Token.Literal }
+func (al *ArrayLiteral) String() string {
+	bb := new(bytes.Buffer)
+
+	elems := make([]string, 0, len(al.Elements))
+	for _, el := range al.Elements {
+		elems = append(elems, el.String())
+	}
+
+	bb.WriteByte('[')
+	bb.WriteString(strings.Join(elems, ", "))
+	bb.WriteByte(']')
+
+	return bb.String()
+}
+
+type IndexExpression struct {
+	Token token.Token
+	Left  Expression
+	Index Expression
+}
+
+func (ie *IndexExpression) expressionNode()      {}
+func (ie *IndexExpression) TokenLiteral() string { return ie.Token.Literal }
+func (ie *IndexExpression) String() string {
+	bb := new(bytes.Buffer)
+
+	bb.WriteByte('(')
+	bb.WriteString(ie.Left.String())
+	bb.WriteByte('[')
+	bb.WriteString(ie.Index.String())
+	bb.WriteString("])")
+
+	return bb.String()
+}

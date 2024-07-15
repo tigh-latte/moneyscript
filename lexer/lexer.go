@@ -75,6 +75,10 @@ func (l *Lexer) NextToken() token.Token {
 		tok = token.Token{Type: token.LSQUIG, Literal: string(l.ch)}
 	case '}':
 		tok = token.Token{Type: token.RSQUIG, Literal: string(l.ch)}
+	case '[':
+		tok = token.Token{Type: token.LSQUAR, Literal: string(l.ch)}
+	case ']':
+		tok = token.Token{Type: token.RSQUAR, Literal: string(l.ch)}
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF

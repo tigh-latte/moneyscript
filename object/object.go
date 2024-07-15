@@ -11,6 +11,7 @@ const (
 	FunctionType    = "FUNCTION"
 	StringType      = "STRING"
 	BuiltinType     = "BUILTIN"
+	ArrayType       = "ARRAY"
 )
 
 type Object interface {
