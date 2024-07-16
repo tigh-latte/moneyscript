@@ -44,6 +44,7 @@ func New(l *lexer.Lexer) *Parser {
 		token.FUNCTION: p.parseFunctionLiteral,
 		token.STRING:   p.parseStringLiteral,
 		token.LSQUAR:   p.parseArrayLiteral,
+		token.LSQUIG:   p.parseHashLiteral,
 	}
 	p.infixParseFns = map[token.TokenType]infixParseFunc{
 		token.EQ:       p.parseInfixExpression,

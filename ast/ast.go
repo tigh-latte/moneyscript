@@ -351,3 +351,25 @@ func (ie *IndexExpression) String() string {
 
 	return bb.String()
 }
+
+type HashLiteral struct {
+	Token token.Token // the '{' character
+	Pairs map[Expression]Expression
+}
+
+func (hl *HashLiteral) expressionNode()      {}
+func (hl *HashLiteral) TokenLiteral() string { return hl.Token.Literal }
+func (hl *HashLiteral) String() string {
+	bb := new(bytes.Buffer)
+
+	pairs := make([]string, len(hl.Pairs))
+	for k, v := range hl.Pairs {
+		pairs = append(pairs, k.String()+":"+v.String())
+	}
+
+	bb.WriteRune('{')
+	bb.WriteString(strings.Join(pairs, ", "))
+	bb.WriteRune('}')
+
+	return bb.String()
+}

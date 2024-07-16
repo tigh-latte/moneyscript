@@ -253,3 +253,34 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 
 	return exp
 }
+
+func (p *Parser) parseHashLiteral() ast.Expression {
+	hash := &ast.HashLiteral{Token: p.curToken, Pairs: make(map[ast.Expression]ast.Expression)}
+
+	for p.peekToken.Type != token.RSQUIG {
+		p.nextToken()
+		key := p.parseExpression(LOWEST)
+		if !p.expectPeek(token.COLON) {
+			return nil
+		}
+
+		p.nextToken()
+		p.nextToken()
+
+		value := p.parseExpression(LOWEST)
+
+		hash.Pairs[key] = value
+
+		if p.peekToken.Type != token.RSQUIG && !p.expectPeek(token.COMMA) {
+			return nil
+		}
+		p.nextToken()
+	}
+
+	if !p.expectPeek(token.RSQUIG) {
+		return nil
+	}
+	p.nextToken()
+
+	return hash
+}

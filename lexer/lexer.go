@@ -44,6 +44,8 @@ func (l *Lexer) NextToken() token.Token {
 		}
 	case ';':
 		tok = token.Token{Type: token.SEMICOLON, Literal: string(l.ch)}
+	case ':':
+		tok = token.Token{Type: token.COLON, Literal: string(l.ch)}
 	case '(':
 		tok = token.Token{Type: token.LPAREN, Literal: string(l.ch)}
 	case ')':
