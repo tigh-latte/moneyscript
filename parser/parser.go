@@ -93,6 +93,7 @@ func (p *Parser) expectPeek(token token.TokenType) bool {
 		return false
 	}
 
+	p.nextToken()
 	return true
 }
 
@@ -108,19 +109,17 @@ func (p *Parser) parseStatement() ast.Statement {
 }
 
 func (p *Parser) parseLetStatement() *ast.LetStatement {
+	stmt := &ast.LetStatement{Token: p.curToken}
+
 	if ok := p.expectPeek(token.IDENT); !ok {
 		return nil
 	}
-	stmt := &ast.LetStatement{Token: p.curToken}
-
-	p.nextToken() // Advance to identifier
 
 	stmt.Name = &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 
 	if ok := p.expectPeek(token.ASSIGN); !ok {
 		return nil
 	}
-	p.nextToken()
 	p.nextToken()
 
 	stmt.Value = p.parseExpression(LOWEST)

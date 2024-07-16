@@ -60,7 +60,6 @@ func (p *Parser) parseGroupedExpression() ast.Expression {
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
-	p.nextToken()
 
 	return exp
 }
@@ -74,19 +73,16 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 	// Skip over bracket to beginning of condition.
 	p.nextToken()
-	p.nextToken()
 
 	expression.Condition = p.parseExpression(LOWEST)
 
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
-	p.nextToken()
 
 	if !p.expectPeek(token.LSQUIG) {
 		return nil
 	}
-	p.nextToken()
 
 	expression.Consequence = p.parseBlockStatement()
 
@@ -96,7 +92,6 @@ func (p *Parser) parseIfExpression() ast.Expression {
 		if !p.expectPeek(token.LSQUIG) {
 			return nil
 		}
-		p.nextToken()
 
 		expression.Alternative = p.parseBlockStatement()
 	}
@@ -127,14 +122,12 @@ func (p *Parser) parseFunctionLiteral() ast.Expression {
 	if !p.expectPeek(token.LPAREN) {
 		return nil
 	}
-	p.nextToken()
 
 	lit.Parameters = p.parseFunctionParameters()
 
 	if !p.expectPeek(token.LSQUIG) {
 		return nil
 	}
-	p.nextToken()
 
 	lit.Body = p.parseBlockStatement()
 
@@ -166,7 +159,6 @@ func (p *Parser) parseFunctionParameters() []*ast.Identifier {
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
-	p.nextToken()
 
 	return idents
 }
@@ -199,7 +191,6 @@ func (p *Parser) parseCallArguments() []ast.Expression {
 	if !p.expectPeek(token.RPAREN) {
 		return nil
 	}
-	p.nextToken()
 
 	return args
 }
@@ -235,7 +226,6 @@ func (p *Parser) parseExpressionList(end token.TokenType) []ast.Expression {
 	if !p.expectPeek(end) {
 		return nil
 	}
-	p.nextToken()
 
 	return li
 }
@@ -249,7 +239,6 @@ func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
 	if !p.expectPeek(token.RSQUAR) {
 		return nil
 	}
-	p.nextToken()
 
 	return exp
 }
@@ -265,7 +254,6 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 		}
 
 		p.nextToken()
-		p.nextToken()
 
 		value := p.parseExpression(LOWEST)
 
@@ -274,13 +262,11 @@ func (p *Parser) parseHashLiteral() ast.Expression {
 		if p.peekToken.Type != token.RSQUIG && !p.expectPeek(token.COMMA) {
 			return nil
 		}
-		p.nextToken()
 	}
 
 	if !p.expectPeek(token.RSQUIG) {
 		return nil
 	}
-	p.nextToken()
 
 	return hash
 }
