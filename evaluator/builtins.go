@@ -1,6 +1,10 @@
 package evaluator
 
-import "git.tigh.dev/tigh-latte/monkeyscript/object"
+import (
+	"fmt"
+
+	"git.tigh.dev/tigh-latte/monkeyscript/object"
+)
 
 var builtins = map[string]*object.Builtin{
 	"len": {
@@ -74,7 +78,7 @@ var builtins = map[string]*object.Builtin{
 	"push": {
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 2 {
-				return newErrorf("wrong number of arguments. got=%d, want=1", len(args))
+				return newErrorf("wrong number of arguments. got=%d, want=2", len(args))
 			}
 
 			switch arg := args[0].(type) {
@@ -86,6 +90,15 @@ var builtins = map[string]*object.Builtin{
 			default:
 				return newErrorf("argument to `push` not supported, go %s", arg.Type())
 			}
+		},
+	},
+	"puts": {
+		Fn: func(args ...object.Object) object.Object {
+			for _, arg := range args {
+				fmt.Println(arg.Inspect())
+			}
+
+			return Null
 		},
 	},
 }
