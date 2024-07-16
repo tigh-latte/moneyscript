@@ -919,7 +919,7 @@ func TestParsingHashLiteralsBoolKeys(t *testing.T) {
 }
 
 func TestParsingHashLiteralsIntegerKeys(t *testing.T) {
-	input := `{1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10"}`
+	input := `{1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10}`
 
 	l := lexer.New(input)
 	p := parser.New(l)
@@ -955,7 +955,7 @@ func TestParsingHashLiteralsIntegerKeys(t *testing.T) {
 	for k, v := range hash.Pairs {
 		literal, ok := k.(*ast.IntegerLiteral)
 		if !ok {
-			t.Errorf("key is not ast.StringLiteral. got=%T", k)
+			t.Errorf("key is not ast.IntegerLiteral. got=%T", k)
 		}
 		expectedValue := expected[literal.Value]
 		testIntegerLiteral(t, v, expectedValue)
