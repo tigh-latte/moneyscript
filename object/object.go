@@ -12,9 +12,14 @@ const (
 	StringType      = "STRING"
 	BuiltinType     = "BUILTIN"
 	ArrayType       = "ARRAY"
+	HashType        = "HASH"
 )
 
 type Object interface {
 	Type() ObjectType
 	Inspect() string
+}
+
+type Hashable interface {
+	HashKey() HashKey
 }

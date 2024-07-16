@@ -2,6 +2,7 @@ package object
 
 import (
 	"bytes"
+	"hash/fnv"
 	"strconv"
 	"strings"
 
@@ -126,6 +127,60 @@ func (a *Array) Inspect() string {
 	bb.WriteByte('[')
 	bb.WriteString(strings.Join(elems, ", "))
 	bb.WriteByte(']')
+
+	return bb.String()
+}
+
+type HashKey struct {
+	Type  ObjectType
+	Value uint64
+}
+
+func (b *Boolean) HashKey() HashKey {
+	var value uint64
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+	return HashKey{Type: b.Type(), Value: value}
+}
+
+func (i *Integer) HashKey() HashKey {
+	return HashKey{Type: i.Type(), Value: uint64(i.Value)}
+}
+
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+
+	return HashKey{Type: s.Type(), Value: h.Sum64()}
+}
+
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+type Hash struct {
+	Pairs map[HashKey]HashPair
+}
+
+func (h *Hash) Type() ObjectType {
+	return HashType
+}
+
+func (h *Hash) Inspect() string {
+	bb := new(bytes.Buffer)
+
+	pairs := make([]string, len(h.Pairs))
+	for _, pair := range h.Pairs {
+		pairs = append(pairs, pair.Key.Inspect()+":"+pair.Value.Inspect())
+	}
+
+	bb.WriteRune('{')
+	bb.WriteString(strings.Join(pairs, ", "))
+	bb.WriteRune('}')
 
 	return bb.String()
 }
